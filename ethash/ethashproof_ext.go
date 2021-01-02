@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	Instance   = New(Config{"", 3, 0, "", 1, 0, ModeNormal}, nil, false)
+	Instance   = New(Config{"", 3, 0, false, "", 1, 0, false, ModeNormal, nil}, nil, false)
 	DefaultDir = defaultDir()
 )
 
@@ -32,7 +32,7 @@ func defaultDir() string {
 }
 
 func DAGSize(blockNum uint64) uint64 {
-	return datasetSizes[blockNum/epochLength]
+	return datasetSize(blockNum)
 }
 
 func (ethash *Ethash) GetVerificationIndices(blockNumber uint64, hash common.Hash, nonce uint64) []uint32 {
