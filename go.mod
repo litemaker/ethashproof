@@ -2,8 +2,6 @@ module github.com/snowfork/ethashproof
 
 go 1.14
 
-go 1.14
-
 require (
 	github.com/deckarep/golang-set v1.7.1
 	github.com/edsrzf/mmap-go v1.0.0
