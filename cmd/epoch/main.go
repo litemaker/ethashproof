@@ -20,9 +20,25 @@ func getHomeDir() string {
 }
 
 func main() {
+
+	dataDir := filepath.Join(getHomeDir(), ".ethash")
+	err := os.MkdirAll(dataDir, 0755)
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
+		return
+	}
+
+	cacheDir := filepath.Join(getHomeDir(), ".ethashproof")
+	err = os.MkdirAll(cacheDir, 0755)
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
+		return
+	}
+
+
 	for i := 0; i < 512; i++ {
-		os.RemoveAll(filepath.Join(getHomeDir(), ".ethash"))
-		root, err := ethashproof.CalculateDatasetMerkleRoot(uint64(i), false)
+		os.RemoveAll(dataDir)
+		root, err := ethashproof.CalculateDatasetMerkleRoot(uint64(i), false, dataDir, cacheDir)
 		if err != nil {
 			fmt.Printf("Calculating dataset merkle root failed: %s\n", err)
 			return

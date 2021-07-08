@@ -3,8 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/big"
 	"os"
+	"os/user"
+	"path/filepath"
 	"strconv"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -22,6 +25,14 @@ type Output struct {
 	ProofLength  uint64   `json:"proof_length"`
 }
 
+func getHomeDir() string {
+	usr, err := user.Current()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return usr.HomeDir
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Printf("Block number param is missing. Please run ./relayer <blocknumber> instead.\n")
@@ -37,6 +48,22 @@ func main() {
 		fmt.Printf("Error: %s\n", err)
 		return
 	}
+
+	dataDir := filepath.Join(getHomeDir(), ".ethash")
+	err = os.MkdirAll(dataDir, 0755)
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
+		return
+	}
+
+	cacheDir := filepath.Join(getHomeDir(), ".ethashproof")
+	err = os.MkdirAll(cacheDir, 0755)
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
+		return
+	}
+
+
 	fmt.Printf("Getting block header\n")
 	r := reader.NewEthReader()
 	header, err := r.HeaderByNumber(int64(number))
@@ -47,15 +74,15 @@ func main() {
 
 	blockno := header.Number.Uint64()
 	epoch := blockno / 30000
-	cache, err := ethashproof.LoadCache(int(epoch))
+	cache, err := ethashproof.LoadCache(int(epoch), cacheDir)
 	if err != nil {
 		fmt.Printf("Cache is missing, calculate dataset merkle tree to create the cache first...\n")
-		_, err = ethashproof.CalculateDatasetMerkleRoot(epoch, true)
+		_, err = ethashproof.CalculateDatasetMerkleRoot(epoch, true, dataDir, cacheDir)
 		if err != nil {
 			fmt.Printf("Creating cache failed: %s\n", err)
 			return
 		}
-		cache, err = ethashproof.LoadCache(int(epoch))
+		cache, err = ethashproof.LoadCache(int(epoch), cacheDir)
 		if err != nil {
 			fmt.Printf("Getting cache failed after trying to creat it: %s. Abort.\n", err)
 			return
@@ -84,7 +111,7 @@ func main() {
 	}
 
 	for _, index := range indices {
-		element, proof, err := ethashproof.CalculateProof(blockno, index, cache)
+		element, proof, err := ethashproof.CalculateProof(blockno, index, cache, dataDir)
 		if err != nil {
 			fmt.Printf("calculating the proofs failed for index: %d, error: %s\n", index, err)
 			return
