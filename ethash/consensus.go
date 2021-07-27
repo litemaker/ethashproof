@@ -591,7 +591,7 @@ func (ethash *Ethash) FinalizeAndAssemble(chain consensus.ChainHeaderReader, hea
 func (ethash *Ethash) SealHash(header *types.Header) (hash common.Hash) {
 	hasher := sha3.NewLegacyKeccak256()
 
-	rlp.Encode(hasher, []interface{}{
+	enc := []interface{}{
 		header.ParentHash,
 		header.UncleHash,
 		header.Coinbase,
@@ -605,8 +605,14 @@ func (ethash *Ethash) SealHash(header *types.Header) (hash common.Hash) {
 		header.GasUsed,
 		header.Time,
 		header.Extra,
-		header.BaseFee,
-	})
+	}
+
+	if header.BaseFee != nil {
+		enc = append(enc, header.BaseFee)
+	}
+
+	rlp.Encode(hasher, enc)
+
 	hasher.Sum(hash[:0])
 	return hash
 }
