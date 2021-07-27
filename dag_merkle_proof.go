@@ -8,7 +8,7 @@ import (
 	"github.com/snowfork/ethashproof/mtree"
 )
 
-func CalculateProof(blockno uint64, index uint32, cache *DatasetMerkleTreeCache) (mtree.Word, []mtree.Hash, error) {
+func CalculateProof(blockno uint64, index uint32, cache *DatasetMerkleTreeCache, dataDir string) (mtree.Word, []mtree.Hash, error) {
 	dt := mtree.NewSHA256DagTree()
 
 	fullSize := ethash.DAGSize(blockno)
@@ -18,7 +18,7 @@ func CalculateProof(blockno uint64, index uint32, cache *DatasetMerkleTreeCache)
 	liveLevel := uint64(branchDepth) - CACHE_LEVEL
 	subtreeStart := index >> liveLevel << liveLevel
 	dt.RegisterIndex(index - subtreeStart)
-	path := ethash.PathToDAG(uint64(blockno/30000), ethash.DefaultDir)
+	path := ethash.PathToDAG(uint64(blockno/30000), dataDir)
 	f, err := os.Open(path)
 	if err != nil {
 		return mtree.Word{}, []mtree.Hash{}, err

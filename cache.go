@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
 	"os/user"
 	"path/filepath"
 
@@ -43,22 +42,18 @@ func getHomeDir() string {
 	return usr.HomeDir
 }
 
-func PersistCache(cache *DatasetMerkleTreeCache) error {
+func PersistCache(cache *DatasetMerkleTreeCache, cacheDir string) error {
 	content, err := json.Marshal(cache)
 	if err != nil {
 		return err
 	}
-	dirPath := filepath.Join(getHomeDir(), ".ethashproof")
-	err = os.MkdirAll(dirPath, 0777)
-	if err != nil {
-		return err
-	}
-	path := filepath.Join(dirPath, fmt.Sprintf("%d.json", cache.Epoch))
+
+	path := filepath.Join(cacheDir, fmt.Sprintf("%d.json", cache.Epoch))
 	return ioutil.WriteFile(path, content, 0644)
 }
 
-func LoadCache(epoch int) (*DatasetMerkleTreeCache, error) {
-	path := filepath.Join(getHomeDir(), ".ethashproof", fmt.Sprintf("%d.json", epoch))
+func LoadCache(epoch int, cacheDir string) (*DatasetMerkleTreeCache, error) {
+	path := filepath.Join(cacheDir, fmt.Sprintf("%d.json", epoch))
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
