@@ -605,6 +605,7 @@ func (ethash *Ethash) SealHash(header *types.Header) (hash common.Hash) {
 		header.GasUsed,
 		header.Time,
 		header.Extra,
+		header.BaseFee,
 	})
 	hasher.Sum(hash[:0])
 	return hash
